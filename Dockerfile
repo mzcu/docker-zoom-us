@@ -1,34 +1,54 @@
 # References:
 #   https://hub.docker.com/r/solarce/zoom-us
 #   https://github.com/sameersbn/docker-skype
-FROM debian:jessie
+FROM ubuntu:18.04
 MAINTAINER mdouchement
 
 
-ENV DEBIAN_FRONTEND noninteractive
+ARG DEBIAN_FRONTEND=noninteractive
+ARG ZOOM_URL=https://zoom.us/client/latest/zoom_amd64.deb
 
 # Refresh package lists
 RUN apt-get update
 RUN apt-get -qy dist-upgrade
 
 # Dependencies for the client .deb
-RUN apt-get install -qy curl sudo desktop-file-utils lib32z1 \
-  libx11-6 libegl1-mesa libxcb-shm0 \
-  libglib2.0-0 libgl1-mesa-glx libxrender1 libxcomposite1 libxslt1.1 \
-  libgstreamer0.10-0 libgstreamer-plugins-base0.10-0 libxi6 libsm6 \
-  libfontconfig1 libpulse0 libsqlite3-0 \
-  libxcb-shape0 libxcb-xfixes0 libxcb-randr0 libxcb-image0 \
-  libxcb-keysyms1 libxcb-xtest0 ibus ibus-gtk libibus-qt1 ibus-qt4 \
-  libnss3 libxss1
+RUN apt-get install -qy curl sudo desktop-file-utils \
+libnss3 \
+libasound2 \
+pkg-config \
+libxau-dev \
+libxdmcp-dev \
+libxcb1-dev \
+libxext-dev \
+libx11-dev
 
-ARG ZOOM_URL=https://zoom.us/client/latest/zoom_amd64.deb
+# nvidia unrecognized opengl version fix
+
+COPY --from=nvidia/opengl:1.0-glvnd-runtime-ubuntu18.04 \
+  /usr/lib/x86_64-linux-gnu \
+  /usr/lib/x86_64-linux-gnu
+
+COPY --from=nvidia/opengl:1.0-glvnd-runtime-ubuntu18.04 \
+  /usr/share/glvnd/egl_vendor.d/10_nvidia.json \
+  /usr/share/glvnd/egl_vendor.d/10_nvidia.json
+
+RUN echo '/usr/lib/x86_64-linux-gnu' >> /etc/ld.so.conf.d/glvnd.conf && \
+    ldconfig && \
+    echo '/usr/$LIB/libGL.so.1' >> /etc/ld.so.preload && \
+    echo '/usr/$LIB/libEGL.so.1' >> /etc/ld.so.preload
+
+ENV NVIDIA_VISIBLE_DEVICES \
+    ${NVIDIA_VISIBLE_DEVICES:-all}
+ENV NVIDIA_DRIVER_CAPABILITIES \
+    ${NVIDIA_DRIVER_CAPABILITIES:+$NVIDIA_DRIVER_CAPABILITIES,}graphics
+
 
 # Grab the client .deb
 # Install the client .deb
 # Cleanup
 RUN curl -sSL $ZOOM_URL -o /tmp/zoom_setup.deb
-RUN dpkg -i /tmp/zoom_setup.deb
-RUN apt-get -f install
+RUN apt-get install -qy /tmp/zoom_setup.deb
 RUN rm /tmp/zoom_setup.deb \
   && rm -rf /var/lib/apt/lists/*
 

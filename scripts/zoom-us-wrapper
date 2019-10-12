@@ -99,6 +99,7 @@ ${SUDO} docker run -d \
   ${ENV_VARS} \
   ${VIDEO_DEVICES} \
   --device /dev/dri \
+  --runtime=nvidia \
   ${VOLUMES} \
   ${ZOOM_EXTRA_DOCKER_ARGUMENTS} \
   mdouchement/zoom-us:latest ${prog} $@ >/dev/null
