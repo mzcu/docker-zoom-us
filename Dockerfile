@@ -1,7 +1,7 @@
 # References:
 #   https://hub.docker.com/r/solarce/zoom-us
 #   https://github.com/sameersbn/docker-skype
-FROM ubuntu:18.04
+FROM ubuntu:20.04
 MAINTAINER mdouchement
 
 
@@ -25,11 +25,11 @@ libx11-dev
 
 # nvidia unrecognized opengl version fix
 
-COPY --from=nvidia/opengl:1.0-glvnd-runtime-ubuntu18.04 \
+COPY --from=nvidia/opengl:1.0-glvnd-runtime-ubuntu20.04 \
   /usr/lib/x86_64-linux-gnu \
   /usr/lib/x86_64-linux-gnu
 
-COPY --from=nvidia/opengl:1.0-glvnd-runtime-ubuntu18.04 \
+COPY --from=nvidia/opengl:1.0-glvnd-runtime-ubuntu20.04 \
   /usr/share/glvnd/egl_vendor.d/10_nvidia.json \
   /usr/share/glvnd/egl_vendor.d/10_nvidia.json
 
